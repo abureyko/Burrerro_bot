@@ -1,6 +1,5 @@
 import asyncio
 import logging
-
 import aiohttp
 from aiogram import Router, F
 from aiogram.filters import Command
@@ -8,12 +7,11 @@ from aiogram.filters import Command
 import keyboards
 from config import bot
 
-commands_router = Router()
-logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
+commands_router = Router()
 
 API_URL = 'https://cataas.com/cat?json=true'
-
 
 # -------------------------------------------------------------------------------------------------------
 async def get_random_cat_url():
@@ -42,28 +40,34 @@ async def send_cat(chat_id: int, reply_msg_func, reply_photo_func):
         await reply_msg_func('добавить в избранные этого котика?', reply_markup=keyboards.rate_cat_kb)
     else:
         await reply_msg_func('не получилось загрузить котика 😢')
-
-
-
+# -------------------------------------------------------------------------------------------------------
 
 @commands_router.message(Command('cat_pic'))
 async def cat_pic_handler(message):
-    await send_cat(message.chat.id, message.answer, message.answer_photo)
+    try:
+        await send_cat(message.chat.id, message.answer, message.answer_photo)
+    except Exception as e:
+        logging.error("Error in cat_pic_handler: {e}")
+        await message.answer('произошла ошибка при отправке котика 😢')
 
 @commands_router.callback_query((F.data == 'load') | (F.data == 'no_load'))
 async def load_cat_callback(callback):
-    await callback.answer()
-    if callback.data == 'load':
-        #load to database function
-        await bot.send_chat_action(callback.message.chat.id, 'typing')
-        await asyncio.sleep(1) 
-        await callback.message.answer("отлично! я загрузил вашего котика в избранные ✅")
-        await callback.message.answer('хотите продолжить просмотр котиков? 😽', reply_markup=keyboards.next_cat_kb)
-    else:
-        await send_cat(callback.message.chat.id, callback.message.answer, callback.message.answer_photo)
+    try:
+        await callback.answer()
+        if callback.data == 'load':
+            await bot.send_chat_action(callback.message.chat.id, 'typing')
+            #SAVE FUNCTION HERE
+            TIME_TO_DELAY = 1
+            await asyncio.sleep(TIME_TO_DELAY) 
+            await callback.message.answer("отлично! я загрузил вашего котика в избранные ✅")
+            await callback.message.answer('хотите продолжить просмотр котиков? 😽', reply_markup=keyboards.next_cat_kb)
+        else:
+            await send_cat(callback.message.chat.id, callback.message.answer, callback.message.answer_photo)
+    except Exception as e:
+        logging.error(f"Error in load_cat_callback: {e}")
 
 @commands_router.callback_query((F.data == 'send') | (F.data=='no_send'))
-async def next_cat(callback):
+async def next_cat_callback(callback):
     await callback.answer()
     if callback.data == 'send':
         await send_cat(callback.message.chat.id, callback.message.answer, callback.message.answer_photo)

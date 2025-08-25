@@ -1,8 +1,10 @@
 import asyncio
-
+import logging
 from config import bot, dp
 from handlers import handlers_router
 from commands import commands_router
+
+logging.basicConfig(level=logging.INFO)
 
 async def main():
     dp.include_router(commands_router)

@@ -1,12 +1,12 @@
-import logging
 import random
-
+import logging
 from aiogram import F, Router
 from aiogram.filters import CommandStart
 from emoji import is_emoji
 
+logger = logging.getLogger(__name__)
+
 handlers_router = Router()
-logging.basicConfig(level=logging.INFO)
 
 UNKNOWN_RESPONSES = [
     'я пока только учусь понимать такие сообщения 🤨',
