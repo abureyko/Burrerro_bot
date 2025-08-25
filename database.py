@@ -12,15 +12,16 @@ class CatDataBase:
         async with aiosqlite.connect(self.db_path) as conn:
             cursor = await conn.cursor()
             await cursor.execute('''
-            CREATE TABLE IF NOT EXISTS cats (
+            CREATE TABLE IF NOT EXISTS favourites (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,       
                 user_id INTEGER NOT NULL,
-                file_id TEXT NOT NULL
+                file_id TEXT NOT NULL,
+                UNIQUE(user_id, file_id)
 ) 
                                  ''')
 
             await conn.commit()
-            logging.info('database initialized successfully')
+            logger.info('database initialized successfully')
     
     async def add_favourites(self, user_id, file_id):
         async with aiosqlite.connect(self.db_path) as conn:
