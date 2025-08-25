@@ -28,7 +28,7 @@ async def get_random_cat_url():
             async with session.get(API_URL) as response:
                 if response.status == 200:
                     data = await response.json()
-                    return f"https://cataas.com{data['url']}"
+                    return data['url']
                 return
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
         logging.error(f"ошибка при получении котика: {e}")
@@ -55,7 +55,9 @@ async def load_cat_callback(callback):
     await callback.answer()
     if callback.data == 'load':
         #load to database function
-        await callback.message.answer("отлично! я загрузил вашего котика в избранные 🗂")
+        await bot.send_chat_action(callback.message.chat.id, 'typing')
+        await asyncio.sleep(1) 
+        await callback.message.answer("отлично! я загрузил вашего котика в избранные ✅")
         await callback.message.answer('хотите продолжить просмотр котиков? 😽', reply_markup=keyboards.next_cat_kb)
     else:
         await send_cat(callback.message.chat.id, callback.message.answer, callback.message.answer_photo)
