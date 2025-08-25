@@ -28,10 +28,10 @@ async def get_random_cat_url():
             async with session.get(API_URL) as response:
                 if response.status == 200:
                     data = await response.json()
-                    return data['url']
+                    return f"https://cataas.com{data['url']}"
                 return
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-        logging.error(f"Ошибка при получении котика: {e}")
+        logging.error(f"ошибка при получении котика: {e}")
         return None
 
 async def send_cat(chat_id: int, reply_msg_func, reply_photo_func):
@@ -39,7 +39,7 @@ async def send_cat(chat_id: int, reply_msg_func, reply_photo_func):
     img = await get_random_cat_url()
     if img:
         await reply_photo_func(photo=img)
-        await reply_msg_func('добавить в избранное этого котика?', reply_markup=keyboards.rate_cat_kb)
+        await reply_msg_func('добавить в избранные этого котика?', reply_markup=keyboards.rate_cat_kb)
     else:
         await reply_msg_func('не получилось загрузить котика 😢')
 
@@ -50,12 +50,20 @@ async def send_cat(chat_id: int, reply_msg_func, reply_photo_func):
 async def cat_pic_handler(message):
     await send_cat(message.chat.id, message.answer, message.answer_photo)
 
-@commands_router.callback_query(F.data == 'load_cat')
+@commands_router.callback_query((F.data == 'load') | (F.data == 'no_load'))
 async def load_cat_callback(callback):
     await callback.answer()
-    #тут надо написать функционал для загрузки котов в избранное пользователя(data base)
+    if callback.data == 'load':
+        #load to database function
+        await callback.message.answer("отлично! я загрузил вашего котика в избранные 🗂")
+        await callback.message.answer('хотите продолжить просмотр котиков? 😽', reply_markup=keyboards.next_cat_kb)
+    else:
+        await send_cat(callback.message.chat.id, callback.message.answer, callback.message.answer_photo)
 
-@commands_router.callback_query(F.data == 'no_load')
-async def no_load(callback):
+@commands_router.callback_query((F.data == 'send') | (F.data=='no_send'))
+async def next_cat(callback):
     await callback.answer()
-    #тут надо отправить сообщение пользователю и предложить прислать еще кота
+    if callback.data == 'send':
+        await send_cat(callback.message.chat.id, callback.message.answer, callback.message.answer_photo)
+    else:
+        await callback.message.answer('вас понял')
