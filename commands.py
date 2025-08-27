@@ -32,7 +32,7 @@ async def get_random_cat_url():
                     return data['url']
                 return
     except (aiohttp.ClientError, asyncio.TimeoutError) as e:
-        logging.error(f"ошибка при получении котика: {e}")
+        logging.error(f"error in get_random_cat_url: {e}")
         return None
 
 
@@ -41,7 +41,7 @@ async def send_cat(chat_id: int, reply_msg_func, reply_photo_func):
     img = await get_random_cat_url()
     if img:
         await reply_photo_func(photo=img,
-            caption="добавить в избранные этого котика?",
+            caption="добавить в Избранное этого котика?",
             reply_markup=keyboards.rate_cat_kb
         )
     else:
@@ -51,13 +51,21 @@ async def send_cat(chat_id: int, reply_msg_func, reply_photo_func):
 async def on_startup():
     await db.create_db()
 
-@commands_router.message(Command('cat_pic'))
-async def cat_pic_handler(message):
+@commands_router.message(Command('cat_picture'))
+async def cat_picure_handler(message):
     try:
         await send_cat(message.chat.id, message.answer, message.answer_photo)
     except Exception as e:
-        logging.error("Error in cat_pic_handler: {e}")
+        logging.error("error in cat_picture_handler: {e}")
         await message.answer('произошла ошибка при отправке котика 😢')
+
+@commands_router.message(Command('my_favourites'))
+async def my_favourites_handler(message):
+    try:
+        
+    except Exception as e:
+        logging.error(f"error in my_favourites_handler: {e}")
+        await message.answer('не удалось открыть Избранное 😢')
 
 
 @commands_router.callback_query((F.data == 'load') | (F.data == 'no_load'))
@@ -70,7 +78,7 @@ async def load_cat_callback(callback):
             file_id = callback.message.photo[-1].file_id
             success = await db.add_favourites(user_id, file_id)
             if success:
-                await callback.message.answer("отлично! я загрузил вашего котика в избранные ✅")
+                await callback.message.answer("отлично! я загрузил вашего котика в Избранное ✅")
             else:
                 await callback.message.answer("произошла ошибка сохранения ❌")
 
@@ -80,7 +88,7 @@ async def load_cat_callback(callback):
         else:
             await send_cat(callback.message.chat.id, callback.message.answer, callback.message.answer_photo)
     except Exception as e:
-        logging.error(f"Error in load_cat_callback: {e}")
+        logging.error(f"error in load_cat_callback: {e}")
 
 
 @commands_router.callback_query((F.data == 'send') | (F.data == 'no_send'))
