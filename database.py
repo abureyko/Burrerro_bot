@@ -32,6 +32,7 @@ class CatDataBase:
                 (user_id, file_id))
                 await conn.commit()
                 logger.info(f'cat added to favourites to user: {user_id}')
+                return True
             except Exception as e:
                 logger.error(f"error adding favourite: {e}")
-
+                return False
