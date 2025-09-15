@@ -36,3 +36,14 @@ class CatDataBase:
             except Exception as e:
                 logger.error(f"error adding favourite: {e}")
                 return False
+            
+    async def get_user_favourites(self, user_id, limit=10, offset=0):
+        async with aiosqlite.connect(self.db_path) as conn:
+            try:
+                cursor = await conn.cursor()
+                await cursor.execute('''SELECT file_id FROM favourites WHERE user_id = ? LIMIT ? OFFSET ? ''', (user_id, limit, offset))
+                results = await cursor.fetchall()
+                return [row[0] for row in results] if results else []
+            except:
+                logger.error(f"error exctracting from favourites")
+                return []

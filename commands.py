@@ -62,10 +62,17 @@ async def cat_picure_handler(message):
 @commands_router.message(Command('my_favourites'))
 async def my_favourites_handler(message):
     try:
-        
+        user_id = message.from_user.id
+        user_favourites = await db.get_user_favourites(user_id)
+
+        if user_favourites:
+            await message.answer('вот последнее фото из Избранные:')
+            await message.answer_photo(photo=user_favourites[0])
+        else:
+            await message.answer('вы не добавили ничего в Избранные!')
+
     except Exception as e:
         logging.error(f"error in my_favourites_handler: {e}")
-        await message.answer('не удалось открыть Избранное 😢')
 
 
 @commands_router.callback_query((F.data == 'load') | (F.data == 'no_load'))
