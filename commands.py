@@ -66,10 +66,12 @@ async def my_favourites_handler(message):
         user_favourites = await db.get_user_favourites(user_id)
 
         if user_favourites:
-            await message.answer('вот последнее фото из Избранные:')
-            await message.answer_photo(photo=user_favourites[0])
+            await message.answer(f"нашлось {len(user_favourites)} котов")
+            for i, file_id in enumerate(user_favourites):
+                await message.answer_photo(photo=file_id, caption=f'котик {i+1} из {len(user_favourites)}')
+            
         else:
-            await message.answer('вы не добавили ничего в Избранные!')
+            await message.answer('ваши Избранные пусты!')
 
     except Exception as e:
         logging.error(f"error in my_favourites_handler: {e}")
